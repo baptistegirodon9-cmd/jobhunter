@@ -414,7 +414,7 @@
       Mis à jour en temps réel
     </div>
     <h1>Trouvez l'emploi qui vous<br><mark>correspond vraiment</mark></h1>
-    <p>Indeed, LinkedIn, WTTJ, France Travail et 5 autres sources agrégées automatiquement.</p>
+    <p>Des milliers d'offres agrégées automatiquement, mises à jour en temps réel.</p>
 
     <div class="hero-form">
       <div class="hf-field">
@@ -465,8 +465,8 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       </div>
       <div>
-        <div class="stat-num">9</div>
-        <div class="stat-lbl">Sources</div>
+        <div class="stat-num" id="stat-new">30j</div>
+        <div class="stat-lbl">Fraîcheur max</div>
       </div>
     </div>
     <div class="stat-item">
@@ -478,7 +478,6 @@
         <div class="stat-lbl">Mise à jour</div>
       </div>
     </div>
-    <div class="stat-sources" id="stat-sources"></div>
   </div>
 </div>
 
@@ -586,24 +585,7 @@
       </div>
     </div>
 
-    <div class="f-section">
-      <div class="f-label">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-        Source
-      </div>
-      <select class="f-select" id="f-source" onchange="fetchJobs(1)">
-        <option value="">Toutes les sources</option>
-        <option value="indeed">Indeed</option>
-        <option value="wttj">Welcome to the Jungle</option>
-        <option value="linkedin">LinkedIn</option>
-        <option value="francetravail">France Travail</option>
-        <option value="remoteok">RemoteOK</option>
-        <option value="remotive">Remotive</option>
-        <option value="himalayas">Himalayas</option>
-        <option value="jobicy">Jobicy</option>
-        <option value="themuse">TheMuse</option>
-      </select>
-    </div>
+<input type="hidden" id="f-source" value="" />
 
     <div class="f-section">
       <div class="f-label">
@@ -645,7 +627,7 @@
         <text x="62" y="36" font-family="Inter, -apple-system, sans-serif" font-size="22" font-weight="800" fill="white" opacity="0.9">JobHunter</text>
       </svg>
     </div>
-    <div style="font-size:12px;">Agrégateur d'offres — 9 sources — Mis à jour toutes les heures</div>
+    <div style="font-size:12px;">Toutes les offres d'emploi — Mis à jour toutes les heures</div>
     <div class="footer-links">
       <a href="/admin.html">Administration</a>
     </div>
@@ -686,11 +668,6 @@
         const h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000);
         document.getElementById('stat-upd').textContent = h>0?`il y a ${h}h`:`il y a ${m}min`;
       }
-      document.getElementById('stat-sources').innerHTML = (d.by_source||[]).map(s=>`
-        <span class="src-chip">
-          <span class="src-dot" style="background:${SRC_COLORS[s.source]||'#94A3B8'}"></span>
-          ${SRC_LABELS[s.source]||s.source} <strong>${s.count}</strong>
-        </span>`).join('');
     } catch {}
   }
 
@@ -766,7 +743,6 @@
           <div class="jc-badges">
             ${j.contract_type?`<span class="badge ${cc}">${esc(j.contract_type)}</span>`:''}
             ${remote?`<span class="badge badge-remote">${remote}</span>`:''}
-            <span class="badge badge-src">${SRC_LABELS[j.source]||j.source}</span>
           </div>
         </div>
         <div class="jc-meta">
@@ -840,7 +816,6 @@
   function debouncedFetch(){ clearTimeout(debTimer); debTimer=setTimeout(()=>fetchJobs(1),400); }
   function resetFilters(){
     ['search-input','hero-q','hero-l','f-location','f-sector'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('f-source').value='';
     contract='';
     document.querySelectorAll('.cc').forEach((c,i)=>c.classList.toggle('on',i===0));
     fetchJobs(1);

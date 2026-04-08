@@ -154,7 +154,9 @@ function queryJobs({ q = '', location = '', contract_type = '', source = '', sec
   const limit  = 20;
   const offset = (Math.max(1, parseInt(page)) - 1) * limit;
 
-  const conditions = ['j.is_active = 1'];
+  // Only show jobs from the last 30 days
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
+  const conditions = ['j.is_active = 1', "j.posted_at >= '" + thirtyDaysAgo + "'"];
   const params     = [];
 
   if (q)             { conditions.push('(j.title LIKE ? OR j.company LIKE ? OR j.description LIKE ?)'); params.push(`%${q}%`, `%${q}%`, `%${q}%`); }
