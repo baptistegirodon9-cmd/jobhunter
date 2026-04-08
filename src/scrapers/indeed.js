@@ -36,11 +36,26 @@ function detectContract(text = '') {
 }
 
 async function scrapeQuery(browser, { q, l }) {
+  const jobs = [];
+  const MAX_PAGES = 3; // 3 pages × ~16 cards = ~48 results per query
+
+  for (let pageNum = 0; pageNum < MAX_PAGES; pageNum++) {
+    const start = pageNum * 16;
+    const pageJobs = await scrapeQueryPage(browser, q, l, start);
+    jobs.push(...pageJobs);
+    if (pageJobs.length < 10) break; // no more results
+    if (pageNum < MAX_PAGES - 1) await new Promise(r => setTimeout(r, 1500));
+  }
+
+  return jobs;
+}
+
+async function scrapeQueryPage(browser, q, l, start = 0) {
   const page = await createStealthPage(browser);
   const jobs = [];
 
   try {
-    const url = `https://fr.indeed.com/emplois?q=${encodeURIComponent(q)}&l=${encodeURIComponent(l)}&sort=date`;
+    const url = `https://fr.indeed.com/emplois?q=${encodeURIComponent(q)}&l=${encodeURIComponent(l)}&sort=date&start=${start}`;
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
     // Accept cookie consent if present (critical for Indeed France)
@@ -152,7 +167,7 @@ async function scrapeQuery(browser, { q, l }) {
       return results;
     });
 
-    console.log(`[indeed] "${q}" in ${l} → ${extracted.length} cards`);
+    console.log(`[indeed] "${q}" in ${l} start=${start} → ${extracted.length} cards`);
 
     for (const item of extracted) {
       jobs.push({

@@ -40,7 +40,7 @@ const QUERIES = [
   '',   // empty query = all recent jobs in France
 ];
 
-function algoliaQuery(query, page = 0) {
+function algoliaQuery(query, page = 0, hitsPerPage = 1000) {
   return new Promise((resolve, reject) => {
     // Filter: French offices only + last 30 days
     const thirtyDaysAgo = Math.floor(Date.now() / 1000) - 30 * 24 * 3600;
@@ -48,7 +48,7 @@ function algoliaQuery(query, page = 0) {
 
     const params = new URLSearchParams({
       query,
-      hitsPerPage: '50',
+      hitsPerPage: String(hitsPerPage),
       page: String(page),
       filters,
       attributesToRetrieve: 'name,organization,offices,contract_type,published_at,profile,summary,slug,objectID,salary_minimum,salary_maximum,salary_currency,salary_period',
@@ -111,45 +111,60 @@ function formatSalary(hit) {
   return `${min.toLocaleString('fr-FR')} ${curr}${period}`;
 }
 
+function processHit(hit, query, seen, jobs) {
+  const id = hit.objectID;
+  if (!id || seen.has(id)) return;
+  seen.add(id);
+  const office = (hit.offices || [])[0] || {};
+  const location = [office.city, office.country].filter(Boolean).join(', ') || 'France';
+  const contractType = CONTRACT_MAP[hit.contract_type] || 'CDI';
+  const description  = (hit.summary || hit.profile || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  jobs.push({
+    source:        'wttj',
+    external_id:   id,
+    title:         hit.name || 'Poste à définir',
+    company:       hit.organization?.name || null,
+    location,
+    contract_type: contractType,
+    sector:        query || 'Général',
+    description:   description.slice(0, 500),
+    salary:        formatSalary(hit),
+    url:           buildJobUrl(hit),
+    posted_at:     hit.published_at || new Date().toISOString(),
+  });
+}
+
 async function scrape() {
   const seen = new Set();
   const jobs = [];
 
+  // Max hits per page (Algolia cap) and max pages per query
+  const HITS_PER_PAGE = 1000;
+  const MAX_PAGES_PER_QUERY = 5; // up to 5000 results per query
+
   for (const query of QUERIES) {
     try {
-      // Fetch page 0 (up to 50 results per query)
-      const result = await algoliaQuery(query, 0);
-      const hits = result.hits || [];
+      let pageNum = 0;
+      let totalPages = 1;
 
-      console.log(`[wttj] "${query || '*'}" → ${hits.length} hits (${result.nbHits} total)`);
+      while (pageNum < totalPages && pageNum < MAX_PAGES_PER_QUERY) {
+        const result = await algoliaQuery(query, pageNum, HITS_PER_PAGE);
+        const hits = result.hits || [];
+        totalPages = result.nbPages || 1;
 
-      for (const hit of hits) {
-        const id = hit.objectID;
-        if (!id || seen.has(id)) continue;
-        seen.add(id);
+        console.log(`[wttj] "${query || '*'}" page ${pageNum+1}/${Math.min(totalPages, MAX_PAGES_PER_QUERY)} → ${hits.length} hits (${result.nbHits} total)`);
 
-        const office = (hit.offices || [])[0] || {};
-        const location = [office.city, office.country].filter(Boolean).join(', ') || 'France';
-        const contractType = CONTRACT_MAP[hit.contract_type] || 'CDI';
-        const description  = (hit.summary || hit.profile || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+        for (const hit of hits) {
+          processHit(hit, query, seen, jobs);
+        }
 
-        jobs.push({
-          source:        'wttj',
-          external_id:   id,
-          title:         hit.name || 'Poste à définir',
-          company:       hit.organization?.name || 'Entreprise confidentielle',
-          location,
-          contract_type: contractType,
-          sector:        query || 'Général',
-          description:   description.slice(0, 500),
-          salary:        formatSalary(hit),
-          url:           buildJobUrl(hit),
-          posted_at:     hit.published_at || new Date().toISOString(),
-        });
+        pageNum++;
+        if (pageNum < Math.min(totalPages, MAX_PAGES_PER_QUERY)) {
+          await new Promise(r => setTimeout(r, 300));
+        }
       }
 
-      // Small delay between queries (be polite)
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise(r => setTimeout(r, 400));
 
     } catch (err) {
       console.warn(`[wttj] Query "${query}" failed: ${err.message}`);

@@ -130,31 +130,43 @@ async function scrapeLinkedInPublic(browser) {
     'data scientist',
     'product manager',
     'chef de projet',
-    'ingénieur',
+    'ingénieur logiciel',
+    'devops',
+    'designer UX',
+    'commercial B2B',
+    'marketing digital',
+    'analyste',
+    'consultant',
+    'architecte logiciel',
   ];
 
+  const MAX_PAGES_PER_QUERY = 3; // LinkedIn shows 25 jobs per page, 3 pages = 75 max
+
   for (const q of queries) {
+    for (let pageNum = 0; pageNum < MAX_PAGES_PER_QUERY; pageNum++) {
+      const start = pageNum * 25;
     const page = await createStealthPage(browser);
     try {
       // LinkedIn's public job search page — no login required
-      const url = `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(q)}&location=France&f_TPR=r2592000&position=1&pageNum=0`;
+      // f_TPR=r2592000 = last 30 days
+      const url = `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(q)}&location=France&f_TPR=r2592000&start=${start}`;
 
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 25000 });
 
       try {
         await page.waitForSelector('.base-card, .job-search-card, [data-entity-urn]', { timeout: 10000 });
       } catch {
-        console.warn(`[linkedin/direct] No cards for "${q}" — may need auth.`);
-        continue;
+        console.warn(`[linkedin/direct] No cards for "${q}" page ${pageNum} — stopping.`);
+        break;
       }
 
       // Scroll to load more cards
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 8; i++) {
         await page.evaluate(() => window.scrollBy(0, 800));
-        await new Promise(r => setTimeout(r, 500));
+        await new Promise(r => setTimeout(r, 400));
       }
 
-      await new Promise(r => setTimeout(r, 1500));
+      await new Promise(r => setTimeout(r, 1000));
 
       const results = await page.evaluate(() => {
         const cards = document.querySelectorAll('.base-card, .job-search-card, [data-entity-urn]');
@@ -181,15 +193,14 @@ async function scrapeLinkedInPublic(browser) {
         }).filter(j => j.title);
       });
 
-      for (const r of results) {
-        if (!r.jobId || seen.has(r.jobId)) continue;
+      const newJobs = results.filter(r => r.jobId && !seen.has(r.jobId));
+      for (const r of newJobs) {
         seen.add(r.jobId);
-
         jobs.push({
           source:        'linkedin',
           external_id:   r.jobId,
           title:         r.title,
-          company:       r.company || 'Via LinkedIn',
+          company:       r.company || null,
           location:      r.location || 'France',
           contract_type: detectContract(r.title),
           sector:        q,
@@ -199,13 +210,20 @@ async function scrapeLinkedInPublic(browser) {
           posted_at:     r.date ? new Date(r.date).toISOString() : new Date().toISOString(),
         });
       }
+
+      console.log(`[linkedin/direct] "${q}" page ${pageNum+1} → ${newJobs.length} new jobs`);
+      if (newJobs.length < 10) break; // no more results on this query
+
     } catch (err) {
-      console.warn(`[linkedin/direct] Query "${q}" failed: ${err.message}`);
+      console.warn(`[linkedin/direct] Query "${q}" page ${pageNum} failed: ${err.message}`);
+      break;
     } finally {
       await page.close();
     }
 
-    await new Promise(r => setTimeout(r, 2000 + Math.random() * 3000));
+    await new Promise(r => setTimeout(r, 1500 + Math.random() * 1500));
+    } // end pageNum loop
+    await new Promise(r => setTimeout(r, 2000 + Math.random() * 2000));
   }
 
   return jobs;
