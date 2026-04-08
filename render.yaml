@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: jobhunter
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: ADMIN_PASSWORD
+        generateValue: true
+      - key: REFRESH_SECRET
+        generateValue: true

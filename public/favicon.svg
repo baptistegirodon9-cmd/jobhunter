@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563EB"/>
+      <stop offset="100%" stop-color="#7C3AED"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <!-- Magnifying glass lens -->
+  <circle cx="26" cy="26" r="15" stroke="white" stroke-width="4" fill="rgba(255,255,255,0.1)"/>
+  <!-- Briefcase body inside lens -->
+  <rect x="17" y="24" width="18" height="12" rx="2" fill="white"/>
+  <!-- Briefcase handle -->
+  <path d="M21 24 v-3 a5 5 0 0 1 10 0 v3" stroke="white" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <!-- Briefcase center clasp -->
+  <rect x="24" y="29" width="4" height="3" rx="1" fill="rgba(37,99,235,0.35)"/>
+  <!-- Magnifying glass handle -->
+  <line x1="37" y1="37" x2="50" y2="50" stroke="white" stroke-width="5" stroke-linecap="round"/>
+</svg>
