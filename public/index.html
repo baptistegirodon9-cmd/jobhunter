@@ -179,25 +179,6 @@
     }
     .src-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
 
-    /* ═══ CATEGORIES ═══ */
-    .cats { padding:28px 24px; background:var(--surface); border-bottom:1px solid var(--border); }
-    .cats-inner { max-width:1280px; margin:0 auto; }
-    .section-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
-    .section-ttl { font-size:16px; font-weight:700; }
-    .cats-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
-    .cat {
-      background:var(--bg); border:1.5px solid var(--border); border-radius:var(--r-lg);
-      padding:16px; cursor:pointer; transition:all .18s; text-align:left;
-    }
-    .cat:hover { border-color:var(--primary); background:var(--primary-l); transform:translateY(-1px); box-shadow:var(--sh-md); }
-    .cat-icon {
-      width:40px; height:40px; border-radius:10px; margin-bottom:10px;
-      display:flex; align-items:center; justify-content:center;
-    }
-    .cat-icon svg { width:20px; height:20px; }
-    .cat-name { font-size:13px; font-weight:700; color:var(--text); margin-bottom:2px; }
-    .cat-sub  { font-size:11px; color:var(--muted); }
-
     /* ═══ LAYOUT ═══ */
     .layout { max-width:1280px; margin:0 auto; display:grid; grid-template-columns:260px 1fr; gap:22px; padding:24px; align-items:start; }
 
@@ -356,7 +337,6 @@
       .jc { flex-direction:column; gap:10px; }
       .jc-logo { width:40px; height:40px; }
       .jc-top { flex-direction:column; gap:7px; }
-      .cats-grid { grid-template-columns:repeat(2,1fr); }
       .stat-item { padding:12px 14px; }
     }
   </style>
@@ -481,72 +461,6 @@
   </div>
 </div>
 
-<!-- ═══ CATEGORIES ═══ -->
-<section class="cats">
-  <div class="cats-inner">
-    <div class="section-hdr">
-      <h2 class="section-ttl">Explorer par domaine</h2>
-    </div>
-    <div class="cats-grid">
-      <button class="cat" onclick="quickSearch('développeur')">
-        <div class="cat-icon" style="background:#DBEAFE;color:#1D4ED8;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-        </div>
-        <div class="cat-name">Développement</div>
-        <div class="cat-sub">Web, mobile, logiciel</div>
-      </button>
-      <button class="cat" onclick="quickSearch('data scientist')">
-        <div class="cat-icon" style="background:#D1FAE5;color:#059669;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-        </div>
-        <div class="cat-name">Data & IA</div>
-        <div class="cat-sub">Data science, ML, BI</div>
-      </button>
-      <button class="cat" onclick="quickSearch('product manager')">
-        <div class="cat-icon" style="background:#EDE9FE;color:#7C3AED;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-        </div>
-        <div class="cat-name">Product</div>
-        <div class="cat-sub">PM, PO, chef projet</div>
-      </button>
-      <button class="cat" onclick="quickSearch('devops cloud')">
-        <div class="cat-icon" style="background:#CFFAFE;color:#0891B2;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
-        </div>
-        <div class="cat-name">DevOps & Cloud</div>
-        <div class="cat-sub">AWS, Azure, SRE</div>
-      </button>
-      <button class="cat" onclick="quickSearch('designer UX UI')">
-        <div class="cat-icon" style="background:#FCE7F3;color:#DB2777;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/></svg>
-        </div>
-        <div class="cat-name">Design UX/UI</div>
-        <div class="cat-sub">Product design, Figma</div>
-      </button>
-      <button class="cat" onclick="quickSearch('marketing digital')">
-        <div class="cat-icon" style="background:#FEF3C7;color:#D97706;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-        </div>
-        <div class="cat-name">Marketing</div>
-        <div class="cat-sub">Digital, SEO, growth</div>
-      </button>
-      <button class="cat" onclick="quickSearch('commercial B2B')">
-        <div class="cat-icon" style="background:#D1FAE5;color:#065F46;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        </div>
-        <div class="cat-name">Commercial</div>
-        <div class="cat-sub">B2B, sales, account</div>
-      </button>
-      <button class="cat" onclick="quickSearch('ingénieur')">
-        <div class="cat-icon" style="background:#F3E8FF;color:#7C3AED;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93L4.93 19.07M4.93 4.93l14.14 14.14"/></svg>
-        </div>
-        <div class="cat-name">Ingénierie</div>
-        <div class="cat-sub">Mécanique, électronique</div>
-      </button>
-    </div>
-  </div>
-</section>
 
 <!-- ═══ MAIN ═══ -->
 <div class="layout">
