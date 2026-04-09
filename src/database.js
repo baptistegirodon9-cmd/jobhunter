@@ -195,8 +195,12 @@ function getStats() {
   return { total, by_source, last_updated: last_log?.completed_at ?? null };
 }
 
+const UPSERT_BATCH = 500; // SQLite max variables safety limit
+
 function upsertJobs(jobs) {
   if (!jobs.length) return { inserted: 0, updated: 0 };
+
+  const source = jobs[0].source;
 
   const upsert = db.prepare(`
     INSERT INTO jobs (source, external_id, title, company, location, contract_type, sector, description, salary, url, posted_at, scraped_at, is_active)
@@ -215,26 +219,28 @@ function upsertJobs(jobs) {
       is_active     = 1
   `);
 
-  const deactivate = db.prepare(`
-    UPDATE jobs SET is_active = 0
-    WHERE source = ? AND external_id NOT IN (${jobs.map(() => '?').join(',')})
-  `);
-
   let inserted = 0;
   let updated  = 0;
 
-  db.exec('BEGIN');
-  try {
-    for (const job of jobs) {
-      const info = upsert.run(job);
-      if (info.changes > 0 && info.lastInsertRowid) inserted++;
-      else updated++;
+  // Step 1: Mark all existing jobs for this source as inactive.
+  // The upsert below will re-activate everything that came back in the current scrape.
+  db.prepare('UPDATE jobs SET is_active = 0 WHERE source = ?').run(source);
+
+  // Step 2: Upsert in batches to avoid "too many SQL variables" on large sets.
+  for (let i = 0; i < jobs.length; i += UPSERT_BATCH) {
+    const batch = jobs.slice(i, i + UPSERT_BATCH);
+    db.exec('BEGIN');
+    try {
+      for (const job of batch) {
+        const info = upsert.run(job);
+        if (info.changes > 0 && info.lastInsertRowid) inserted++;
+        else updated++;
+      }
+      db.exec('COMMIT');
+    } catch (e) {
+      db.exec('ROLLBACK');
+      throw e;
     }
-    deactivate.run(jobs[0].source, ...jobs.map(j => j.external_id));
-    db.exec('COMMIT');
-  } catch (e) {
-    db.exec('ROLLBACK');
-    throw e;
   }
 
   return { inserted, updated };

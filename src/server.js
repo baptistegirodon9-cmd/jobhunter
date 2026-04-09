@@ -145,7 +145,15 @@ app.get('*', (_req, res) => {
 startScheduler();
 
 app.listen(PORT, () => {
-  console.log(`\n🚀  JobRadar is running at http://localhost:${PORT}`);
-  console.log(`📋  Admin dashboard : http://localhost:${PORT}/admin.html`);
-  console.log(`🔄  Auto-refresh    : every 6 hours via cron\n`);
+  console.log(`\n  JobHunter is running at http://localhost:${PORT}`);
+  console.log(`  Admin dashboard : http://localhost:${PORT}/admin.html\n`);
+
+  // Auto-scrape on startup so the DB is populated after every Render restart.
+  // Delay slightly to let the server fully initialize first.
+  setTimeout(() => {
+    console.log('[startup] Triggering initial scrape...');
+    runAllScrapers().catch(err =>
+      console.error('[startup] Scrape error:', err.message)
+    );
+  }, 5000);
 });
