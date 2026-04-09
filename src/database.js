@@ -257,4 +257,17 @@ function getScraperLogs(limit = 100) {
   return db.prepare('SELECT * FROM scraper_logs ORDER BY started_at DESC LIMIT ?').all(limit);
 }
 
-module.exports = { db, queryJobs, getJobById, getStats, upsertJobs, logScraper, getScraperLogs };
+// Sources conservées — toutes les autres seront désactivées au démarrage
+const ACTIVE_SOURCES = ['wttj', 'francetravail', 'apec', 'indeed', 'linkedin'];
+
+function removeOldSources() {
+  const placeholders = ACTIVE_SOURCES.map(() => '?').join(', ');
+  const info = db.prepare(
+    `DELETE FROM jobs WHERE source NOT IN (${placeholders})`
+  ).run(...ACTIVE_SOURCES);
+  if (info.changes > 0) {
+    console.log(`[db] Removed ${info.changes} jobs from discontinued sources.`);
+  }
+}
+
+module.exports = { db, queryJobs, getJobById, getStats, upsertJobs, logScraper, getScraperLogs, removeOldSources };

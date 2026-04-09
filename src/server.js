@@ -5,7 +5,7 @@ require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') }
 
 const express            = require('express');
 const path               = require('path');
-const { queryJobs, getJobById, getStats, getScraperLogs } = require('./database');
+const { queryJobs, getJobById, getStats, getScraperLogs, removeOldSources } = require('./database');
 const { runAllScrapers } = require('./scrapers');
 const { startScheduler } = require('./scheduler');
 
@@ -148,8 +148,10 @@ app.listen(PORT, () => {
   console.log(`\n  JobHunter is running at http://localhost:${PORT}`);
   console.log(`  Admin dashboard : http://localhost:${PORT}/admin.html\n`);
 
+  // Remove jobs from discontinued sources (remotive, himalayas, jobicy, themuse, remoteok)
+  removeOldSources();
+
   // Auto-scrape on startup so the DB is populated after every Render restart.
-  // Delay slightly to let the server fully initialize first.
   setTimeout(() => {
     console.log('[startup] Triggering initial scrape...');
     runAllScrapers().catch(err =>

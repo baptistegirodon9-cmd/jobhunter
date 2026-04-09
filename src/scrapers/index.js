@@ -13,13 +13,8 @@
 const { upsertJobs, logScraper } = require('../database');
 
 const sources = [
-  // ── Fast API sources (run concurrently first) ──
-  { name: 'wttj',          mod: require('./wttj')          }, // Algolia API — ~72 000 jobs
-  { name: 'remotive',      mod: require('./remotive')      },
-  { name: 'remoteok',      mod: require('./remoteok')      },
-  { name: 'himalayas',     mod: require('./himalayas')     },
-  { name: 'jobicy',        mod: require('./jobicy')        },
-  { name: 'themuse',       mod: require('./themuse')       },
+  // ── Fast API sources — France uniquement (run concurrently first) ──
+  { name: 'wttj',          mod: require('./wttj')          }, // Algolia API — ~72 000 offres FR
   { name: 'francetravail', mod: require('./francetravail') },
   { name: 'apec',          mod: require('./apec')          },
   // ── Puppeteer sources (run sequentially to limit memory) ──
