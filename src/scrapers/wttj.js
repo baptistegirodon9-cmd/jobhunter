@@ -30,12 +30,25 @@ const CONTRACT_MAP = {
 // All WTTJ contract types to iterate over
 const CONTRACT_TYPES = ['full_time', 'part_time', 'internship', 'apprenticeship', 'freelance', 'temporary'];
 
-// French regions — used to sub-split on overflowing buckets
+// French regions — used to sub-split on overflowing buckets.
+// Values must be quoted in Algolia filters when they contain spaces.
 const REGIONS = [
-  'Île-de-France', 'Auvergne-Rhône-Alpes', 'Nouvelle-Aquitaine', 'Occitanie',
-  'Hauts-de-France', 'Provence-Alpes-Côte d\'Azur', 'Grand Est', 'Bretagne',
-  'Normandie', 'Pays de la Loire', 'Bourgogne-Franche-Comté', 'Centre-Val de Loire',
-  'Corse', 'Martinique', 'Guadeloupe', 'La Réunion',
+  'Île-de-France',
+  '"Auvergne-Rhône-Alpes"',
+  '"Nouvelle-Aquitaine"',
+  'Occitanie',
+  '"Hauts-de-France"',
+  '"Provence-Alpes-Côte d\'Azur"',
+  '"Grand Est"',
+  'Bretagne',
+  'Normandie',
+  '"Pays de la Loire"',
+  '"Bourgogne-Franche-Comté"',
+  '"Centre-Val de Loire"',
+  'Corse',
+  'Paris',
+  'Lyon',
+  'Marseille',
 ];
 
 function algoliaQuery(filters, page = 0, hitsPerPage = 1000) {
@@ -144,6 +157,7 @@ async function fetchBucket(baseFilter, seen, jobs) {
   if (hits.length >= 1000) {
     console.warn(`[wttj] Bucket capped (${result.nbHits} total) — sub-splitting by region…`);
     for (const region of REGIONS) {
+      // Already quoted if needed (e.g. '"Grand Est"')
       const regionFilter = `${baseFilter} AND offices.state:${region}`;
       try {
         const sub = await algoliaQuery(regionFilter, 0, 1000);
